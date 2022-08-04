@@ -8,8 +8,8 @@
 // @author         Ohad Cohen
 // @include          https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx*
 // @grant          GM_xmlhttpRequest
-// @updateURL      https://raw.githubusercontent.com/ohadcn/userscripts/master/KnessetAgendasEditor.meta.js
-// @downloadURL    https://raw.githubusercontent.com/ohadcn/userscripts/master/KnessetAgendasEditor.user.js
+// @updateURL      https://raw.githubusercontent.com/ohadcn/liberty-index/master/KnessetAgendasEditor.meta.js
+// @downloadURL    https://raw.githubusercontent.com/ohadcn/liberty-index/master/KnessetAgendasEditor.user.js
 // @run-at         document-end
 // ==/UserScript==
 
