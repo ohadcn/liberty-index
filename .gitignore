@@ -1,0 +1,11 @@
+node_modules
+unscored_laws*.csv
+new_laws.csv
+scored_laws.csv
+table.csv
+table*.csv
+initiators.csv
+file.csv
+*.log
+*.data
+*.zip
