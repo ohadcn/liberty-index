@@ -9,3 +9,4 @@ file.csv
 *.log
 *.data
 *.zip
+.vscode
