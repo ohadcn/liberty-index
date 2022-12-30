@@ -10,3 +10,4 @@ file.csv
 *.data
 *.zip
 .vscode
+data/checksum.txt
