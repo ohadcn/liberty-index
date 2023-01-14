@@ -11,3 +11,4 @@ file.csv
 *.zip
 .vscode
 data/checksum.txt
+.~*
