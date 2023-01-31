@@ -212,11 +212,11 @@ for doc in get_docs():
     # 127 - הצעת חוק - הודעת מערכת רשומות
     if str(doc["GroupTypeID"]) != '1':
         if str(doc["GroupTypeID"]) not in [
-            '51', "1", "2", "3", "4", "5", "8", "9", "15", "17",
-            "45", "46", "56", "59", "101", "102", "103", "12",
-                        "118", "99", "57", "125", "58", "127", "122", "23",
-                        "50", "49", "104", "105", "47", "28", "98", "0", "97",
-                        "60", "7"
+            '0', '1', '2', '3', '4', '5', '7', '8', '9', '12',
+            '15', '17', '23', '28', '45', '46', '47', '49',
+            '50', '51', '56', '57', '58', '59', '60', '97',
+            '98', '99', '101', '102', '103', '104', '105',
+            '118', '122', '125', '127'
         ]:
             print("unknown doc type",
                   doc["GroupTypeID"], "-", doc["GroupTypeDesc"])
@@ -291,7 +291,6 @@ for doc in get_docs():
         scores[num][7] = "1"
         scores[num][8] = "1"
     elif str(law["StatusID"]) == "177":
-        # print("StatusID", law["StatusID"], law["PrivateNumber"])
         if(str(law["PostponementReasonID"]) in [
             '41', '1065', '2511', '2512', '3010',
             '3011', '3012', '3013', '3087'
@@ -303,7 +302,7 @@ for doc in get_docs():
                 '2505', '2506', '2507', '2508', '2509',
                 '2510', '3086', '3087', '3112'
             ]:
-                print("PostponementReason", law["PostponementReasonID"],
+                print("unknown PostponementReason", law["PostponementReasonID"],
                       law["PostponementReasonDesc"], law["Id"], law["KnessetNum"], law["PrivateNumber"])
             scores[num][7] = "1"
             scores[num][8] = "0"
@@ -314,8 +313,8 @@ for doc in get_docs():
             '140', '141', '141', '142', '143', '150',
             '161', '167', '169', '175', '178'
         ]:
-            print("StatusID", law["StatusID"], law["Id"], law["KnessetNum"], law["PrivateNumber"],
-                  law.get("PostponementReasonID"), law.get("PostponementReasonDesc"))
+            print("unknown StatusID", law["StatusID"],
+                  law["Id"], law["KnessetNum"], law["PrivateNumber"])
         scores[num][7] = "1"
         scores[num][8] = "0"
 
