@@ -94,7 +94,7 @@ for name in ["laws21", "laws22", "laws23", "laws24"]:
 		if line.get("מספר חוק") and line.get("ניקוד לחוק") != None and line.get("ניקוד לחוק") != "":
 			scored_laws[line["מספר חוק"]] = line
 
-scores = [['"שם הצעת החוק","מדרג","מספר חוק","ניקוד", "קישור להצעת החוק", "הסבר הדירוג","הערות אחרות","הגיע להצבעה?","עבר?","יוזם ראשון","חתומים"']] + [[]] * 5000
+scores = [['"שם הצעת החוק","מדרג","מספר חוק","ניקוד לחוק", "קישור להצעה", "הסבר הדירוג","הערות אחרות","הגיע להצבעה?","עבר?","יוזם ראשון","חתומים"']] + [[]] * 5000
 n = 1
 CURRENT_KNESSET = "25"
 for line in DictReader(open("laws" + CURRENT_KNESSET + ".csv", "rt")):
@@ -131,6 +131,7 @@ split_initiators = compile("[\n\t]")
 i = 0
 laws_last = 0
 knst = {}
+DEBUG_STATUSES = False
 for doc in get_docs():
 	i += 1
 	# if i%1000 == 0:
@@ -143,41 +144,71 @@ for doc in get_docs():
 		continue
 
 
-	if str(law["KnessetNum"]) != CURRENT_KNESSET:
-		if not knst.get(law["KnessetNum"]):
-			print(law["KnessetNum"])
+	if (not DEBUG_STATUSES) and str(law["KnessetNum"]) != CURRENT_KNESSET:
 		knst[law["KnessetNum"]] = True
 		continue
 
 	# 53 - הצעה ממשלתית
 	# 54 - הצעה פרטית
 	# 55 - ועדה
+	# 6042 - נוסח חדש
+	# 6041 - נוסח משולב
+	# 6043 - מנדטורי
+	# 6045 - מועצת המדינה הזמנית
 	if str(law["SubTypeID"]) != '54':
-		if str(law["SubTypeID"]) not in ["53", "54", "55"]:
-			print("unknown law type", law["SubTypeID"], law["SubTypeDesc"])
-		continue
+		if DEBUG_STATUSES and str(law["SubTypeID"]) not in ["53", "54", "55", "6042", "6045", "6043", "6041"]:
+			print("unknown law type", law["SubTypeID"], "-", law["SubTypeDesc"], law["Id"])
+		else:
+			continue
 	
+	# 0 - מסמכים לא משויכים
 	# 1 - דיון מוקדם
 	# 2 - הצעת חוק לקריאה הראשונה
+	# 3 - הצעת חוק לקריאה הראשונה - נוסח מתוקן
 	# 4 - הצעת חוק לקריאה השנייה והשלישית
 	# 5 - הצעת חוק לקריאה השנייה והשלישית - לוח תיקונים
+	# 7 - הצעת חוק לקריאה השלישית - לוח תיקונים
 	# 8 - חוק - נוסח לא רשמי
 	# 9 - חוק - פרסום ברשומות
 	# 12 - מסמך מ.מ.מ
 	# 17 - החלטת ממשלה
+	# 23 - פרוטוקול ועדה
+	# 45 - קטע מדברי הכנסת
+	# 28 - דברי הכנסת
 	# 46 - הצעת חוק לקריאה השנייה והשלישית - הנחה מחדש
+	# 47 - הצעת חוק לקריאה השנייה והשלישית - הנחה מחדש
+	# 49 - הצעת חוק לקריאה השנייה והשלישית - הנחה מחדש
+	# 50 - הצעת חוק לקריאה השנייה והשלישית - לוח תיקונים
 	# 51 - הצעת חוק לדיון מוקדם - נוסח מתוקן
 	# 56 - הצעת חוק לקריאה הראשונה - נוסח לדיון בוועדה
+	# 57 - תיקון טעות בחוק שהתקבל
+	# 58 - הודעה לעיתונות
 	# 59 - חומר רקע
+	# 60 - הצעת חוק לקריאה השניה והשלישית - נוסח לדיון בוועדה
+	# 97 - חוק - נוסח חדש
+	# 98 - הצעת נוסח חדש
+	# 99 - חוק - תיקון טעות
 	# 101 - הצעת חוק לקריאה השניה והשלישית - פונצ  בננה
 	# 102 - הצעת חוק לקריאה השניה והשלישית - לוח תיקונים - פונצ בננה
 	# 103 - הצעת חוק לקריאה השנייה והשלישית - הנחה מחדש- פונצ בננה
+	# 104 - הצעת חוק לקריאה השנייה והשלישית - הנחה מחדש-פונצ בננה
+	# 105 - הצעת חוק לקריאה השנייה והשלישית - לוח תיקונים-פונצ בננה
+	# 118 - חוק - תיקון טעות - פרסום ברשומות
+	# 122 - הערכת השפעות רגולציה
+	# 125 - חוק - פרסום ברשומות
+	# 127 - הצעת חוק - הודעת מערכת רשומות
 	if str(doc["GroupTypeID"]) != '1':
-		if str(doc["GroupTypeID"]) not in ['51', "1", "2", "4", "5", "8", "9", "17", "46", "56", "59", "101", "102", "103", "12"]:
-			print("unknown doc type", doc["GroupTypeID"], doc["GroupTypeDesc"])
+		if str(doc["GroupTypeID"]) not in [
+				'51', "1", "2", "3", "4", "5", "8", "9", "15", "17",
+				"45", "46", "56", "59", "101", "102", "103", "12",
+				"118", "99", "57", "125", "58", "127", "122", "23",
+				"50", "49", "104", "105", "47", "28", "98", "0", "97",
+				"60", "7"
+				]:
+			print("unknown doc type", doc["GroupTypeID"], "-" , doc["GroupTypeDesc"])
 		continue
 	
-	num = int(law["PrivateNumber"])
+	num = 1 if DEBUG_STATUSES else int(law["PrivateNumber"])
 	laws_last += 1
 	# if num != laws_last:
 	# 	print(num, laws_last)
@@ -189,25 +220,91 @@ for doc in get_docs():
 	if not scores[num][4]:
 		scores[num][4] = 'https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx?t=lawsuggestionssearch&lawitemid=' + str(law["Id"])
 	# print(law)
-	if str(law["StatusID"]) in ["104", "141"]:
+
+	# StatusID
+	# 104 - הונחה על שולחן הכנסת לדיון מוקדם
+	# 106 - בוועדת הכנסת לקביעת הוועדה המטפלת
+	# 108 - בהכנה לקריאה הראשונה בוועדה
+	# 109 - אושרה בוועדה לקריאה ראשונה 
+	# 111 - לדיון במליאה לקראת הקריאה הראשונה
+	# 113 - בהכנה לקריאה שנייה-שלישית בוועדה
+	# 114 - לדיון במליאה לקראת קריאה שנייה-שלישית
+	# 115 - הוחזרה לוועדה להכנה לקריאה שלישית 
+	# 116 - בהכנה לקריאה שנייה-שלישית בוועדה
+	# 118 - חוק עבר
+	# 120 - לדיון במליאה על החלת דין רציפות 
+	# 122 - מוזגה עם הצעת חוק אחרת
+	# 124 - הוסבה להצעה לסדר היום
+	# 126 - לאישור מיזוג בוועדת הכנסת 
+	# 130 - הונחה על שולחן הכנסת לקריאה שנייה-שלישית
+	# 140 - להסרה מסדר היום לבקשת ועדה 
+	# 141 - הונחה על שולחן הכנסת לקריאה ראשונה
+	# 142 - בוועדת הכנסת לקביעת הוועדה המטפלת 
+	# 143 - להסרה מסדר היום לבקשת ועדה 
+	# 150 - במליאה לדיון מוקדם
+	# 161 - לאישור פיצול במליאה 
+	# 167 - אושרה בוועדה לקריאה ראשונה 
+	# 169 - לאישור מיזוג בוועדת הכנסת 
+	# 175 - בדיון בוועדה על החלת דין רציפות
+	# 177 - החקיקה נעצרה
+	# 178 - אושרה בוועדה לקריאה שנייה-שלישית 
+
+	# PostponementReasonID
+	# 41 - כהונת חה"כ פסקה בשל התחדשות חברות ח"כ אחר
+	# 1065
+	# 2245
+	# 2506 הסרה מסד"י בהמלצת ועדה אחרי ד. מוקדם
+	# 2507 - לא נתקבלה בק-1 
+	# 2508 - הסרה מסד"י בהמלצת ועדה אחרי ק-1
+	# 2509 - לא נתקבלה בק-2
+	# 2510 - לא נתקבלה בק-3
+	# 2511 - חזרת חה"כ המציע לפני ד. מוקדם
+	# 2512 - חזרת חה"כ המציע אחרי ד. מוקדם
+	# 2505 - הסרה מסד"י בד. מוקדם
+	# 3010 - מונה לנשיא
+	# 3011 - חה"כ המציע נפטר
+	# 3012 - חה"כ המציע התפטר
+	# 3013 - חה"כ המציע מונה לתפקיד בממשלה
+	# 3087 - הצעת החוק לא נדונה/לא הוצבעה במועד
+	# 3086 - לא הושג הרוב הדרוש - הצ"ח תקציבית
+	# 3112 - לא הושג הרוב הדרוש
+
+	if str(law["StatusID"]) in ["104"]:
 		scores[num][7] = "0"
 		scores[num][8] = "0"
-	elif str(law["StatusID"]) == "118":
-		# חוק עבר
+	elif str(law["StatusID"]) in ["118"]:
 		scores[num][7] = "1"
 		scores[num][8] = "1"
 	elif str(law["StatusID"]) == "177":
-		if(str(law["PostponementReasonID"]) in ["3013", "3012", "3011", "3010", "1065", "2511"]):
-			# נדחה בגלל שהח"כ המציע עזב את הכנסת
+		# print("StatusID", law["StatusID"], law["PrivateNumber"])
+		if(str(law["PostponementReasonID"]) in [
+				'41', '1065', '2511', '2512', '3010',
+				'3011', '3012', '3013', '3087'
+				]):
 			scores[num][7] = "0"
 			scores[num][8] = "0"
 		else:
-			# נדחה בהצבעה
+			if not str(law["PostponementReasonID"]) in [
+					'2505', '2506', '2507', '2508', '2509',
+					'2510', '3086', '3087', '3112'
+					]:
+				print("PostponementReason", law["PostponementReasonID"], law["PostponementReasonDesc"], law["Id"], law["KnessetNum"], law["PrivateNumber"])
 			scores[num][7] = "1"
 			scores[num][8] = "0"
 	else:
+		if not str(law["StatusID"]) in [
+				'106', '108', '109', '111', '113', '114',
+				'115', '120', '122', '124', '126', '130',
+				'140', '141', '141', '142', '143', '150',
+				'161', '167', '169', '175', '178'
+			]:
+			print("StatusID", law["StatusID"], law["Id"], law["KnessetNum"], law["PrivateNumber"],
+			law.get("PostponementReasonID"), law.get("PostponementReasonDesc"))
 		scores[num][7] = "1"
 		scores[num][8] = "0"
+
+	if DEBUG_STATUSES:
+		continue
 
 	old_names = None
 	#print(doc["GroupTypeDesc"], doc["FilePath"])
@@ -247,10 +344,12 @@ for doc in get_docs():
 		print("no iniitiators", [p.text for p in get_doc(doc["FilePath"]).paragraphs])
 
 print(laws_last, len(scores), "laws")
-open("unscored_laws.csv", "wt").write(unscored_csv)
-open("new_laws.csv", "wt").write(news_csv)
-open("scored_laws.csv", "wt").write(old_csv)
-open("table.csv", "wt").write("\n".join([",".join([o or '' for o in line]) for line in scores if line]))
-open("initiators.csv", "wt").write("\n".join([",".join([o or '' for o in line]) for line in laws_initiators]))
+
+if not DEBUG_STATUSES:
+	open("unscored_laws.csv", "wt").write(unscored_csv)
+	open("new_laws.csv", "wt").write(news_csv)
+	open("scored_laws.csv", "wt").write(old_csv)
+	open("table.csv", "wt").write("\n".join([",".join([o or '' for o in line]) for line in scores if line]))
+	open("initiators.csv", "wt").write("\n".join([",".join([o or '' for o in line]) for line in laws_initiators]))
 
 input()
