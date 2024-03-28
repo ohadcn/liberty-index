@@ -20,6 +20,7 @@ sys.excepthook = excepthook
 try:
     from requests import get
     from docx import Document
+    from docx.opc.exceptions import PackageNotFoundError
 except:
     from subprocess import check_call
     from sys import executable
@@ -79,6 +80,9 @@ def get_doc(url, retry=3):
         open(filename, "wb").write(data.content)
     try:
         return Document(filename)
+    except PackageNotFoundError as e:
+        print(filename + " not a docx file failed to open")
+        return Document()
     except Exception as e:
         if retry > 0:
             print(filename + " failed to open, retrying")
@@ -123,10 +127,10 @@ for line in DictReader(open("laws" + CURRENT_KNESSET + ".csv", "rt")):
         line["מדרג"] = "dup_laws_bot"
     # print(line)
     scores[n] = [
-        "\"" + line.get("שם הצעת החוק") +
-        "\"", line.get("מדרג"), line.get("מספר חוק"),
+        "\"" + line.get("שם הצעת החוק").replace('"', '""') + "\"",
+        line.get("מדרג"), line.get("מספר חוק"),
         line.get("ניקוד לחוק") or line.get("ניקוד"), line.get(
-            "קישור להצעה"), "\""+line.get("הסבר הדירוג").replace("\"", "'")+"\"",
+            "קישור להצעה"), "\""+line.get("הסבר הדירוג").replace("\"", '""')+"\"",
         line.get("הערות אחרות"), line.get("הגיע להצבעה?"), line.get("עבר?"), line.get("יוזם ראשון"), line.get("חתומים")]
     if line.get("ניקוד לחוק") != None and line.get("ניקוד לחוק") != "":
         if line.get("מספר חוק"):
@@ -373,7 +377,7 @@ if not DEBUG_STATUSES:
     open("new_laws.csv", "wt").write(news_csv)
     open("scored_laws.csv", "wt").write(old_csv)
     open("table.csv", "wt").write(
-        "\n".join([",".join([o or '' for o in line]) for line in scores if line]))
+        "\n".join([",".join([(o or '') for o in line]) for line in scores if line]))
     open("initiators.csv", "wt").write(
         "\n".join([",".join([o or '' for o in line]) for line in laws_initiators]))
 
