@@ -101,7 +101,7 @@ print(str(len(laws)) + " laws loaded")
 
 dups = compile("(פ[/\\\\][0-9]+[/\\\\]2(1|3|4|5|2))")
 init = compile("יוז(מות|מים|מת|ם):\t? +חבר(ות|י|ת)? הכנסת\t")
-numbers = compile("[\d]+")
+numbers = compile("[\\d]+")
 scored_laws = {}
 for name in ["laws21", "laws22", "laws23", "laws24"]:
     dict = DictReader(open(name + ".csv", "rt"))
@@ -109,7 +109,7 @@ for name in ["laws21", "laws22", "laws23", "laws24"]:
         if line.get("מספר חוק") and line.get("ניקוד לחוק") != None and line.get("ניקוד לחוק") != "":
             scored_laws[line["מספר חוק"]] = line
 
-scores = [['"שם הצעת החוק","מדרג","מספר חוק","ניקוד לחוק", "קישור להצעה", "הסבר הדירוג","הערות אחרות","הגיע להצבעה?","עבר?","יוזם ראשון","חתומים"']] + [[]] * 5000
+scores = [['"שם הצעת החוק","מדרג","מספר חוק","ניקוד לחוק", "קישור להצעה", "הסבר הדירוג","הערות אחרות","הגיע להצבעה?","עבר?","יוזם ראשון","חתומים"']] + [[]] * 10000
 n = 1
 CURRENT_KNESSET = "25"
 for line in DictReader(open("laws" + CURRENT_KNESSET + ".csv", "rt")):
@@ -138,7 +138,7 @@ for line in DictReader(open("laws" + CURRENT_KNESSET + ".csv", "rt")):
     n += 1
 # sys.exit(0)
 duplicates = {}
-laws_initiators = [[]]*5000
+laws_initiators = [[]]*10000
 
 news_csv = 'קישור, שם, מספר\n'
 unscored_csv = 'קישור, שם, מספר, עלה להצבעה\n'

@@ -12,3 +12,5 @@ file.csv
 .vscode
 data/checksum.txt
 .~*
+server/credentials.json
+server/allowed_mails.json

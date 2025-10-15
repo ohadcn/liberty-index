@@ -3,7 +3,7 @@
 // @name:he        עורכי מדד החירות
 // @description    Help Knesset Agendas Editors And Reviewers
 // @description:he סקריפט עזר למדרגי חוקים עבור מדד החרות.
-// @version        1.4.6
+// @version        1.5.0
 // @namespace      ohadcn-kneset-agendas
 // @author         Ohad Cohen
 // @include          https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx*
@@ -16,9 +16,6 @@
 if ('undefined' == typeof __PAGE_SCOPE_RUN__) {
     (function page_scope_runner() {
         var my_src = "(" + page_scope_runner.caller.toString() + ")();";
-        var gapiScript = document.createElement('script');
-        gapiScript.src = "https://apis.google.com/js/api.js";
-        document.head.appendChild(gapiScript);
         var script = document.createElement('script');
         script.setAttribute("type", "text/javascript");
         script.textContent = "var __PAGE_SCOPE_RUN__ = true;\n" + my_src;
@@ -31,7 +28,6 @@ if ('undefined' == typeof __PAGE_SCOPE_RUN__) {
 }
 
 
-var spreadsheetId = '1q-2b_lvGYc-6M8b9KYYWWkp9l6ifDggPnDQhpDB5J1o';
 
 function valElement(value, content) {
     var ret = document.createElement("option");
@@ -51,7 +47,7 @@ const hideBtn = "display: none;";
 
 var choose;
 var sendBtn;
-var userMail = "anonymous";
+var userMail = "";
 
 function btn(text, style) {
     var ret = document.createElement("button")
@@ -63,7 +59,6 @@ function btn(text, style) {
 
 function sendData(ev) {
     ev.preventDefault();
-    //https://docs.google.com/spreadsheets/d/1c4PDTmDIn2M2tsSjK9LbrtXlhbHhRowdAMJk9aAHID8/edit#gid=0
     var lawName = $(".LawDarkBrownTitleH2").text();
     var billNum = $("strong:contains(מספר הצ\"ח)").parent().next().text().trim();
     var derug = $("#derug").val();
@@ -79,30 +74,35 @@ function sendData(ev) {
         billNum = "מ/" + billNum + "/34";
         initiators = ["ממשלתית"];
     }
-    gapi.client.sheets.spreadsheets.values.update({
-        spreadsheetId: spreadsheetId,
-        range: 'laws' + (Number(billNum.split("/")[2])) + '!A' + (Number(billNum.split("/")[1]) + 1),
-        resource: {
-            values: [
-                [lawName, userMail, billNum, derug,
-                    location.href, description.value,
-                    /* comment */
-                    , /* is voted? */, /* is passed? */,
-                ].
-                    concat(initiators)
-            ]
+    // send data to liberty.oodi.co.il/api/send/laws25/123 using fetch
+    fetch('https://li.oodi.co.il/api/send/laws' + (Number(billNum.split("/")[2])) + '/' + (Number(billNum.split("/")[1]) + 1), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
         },
-        valueInputOption: "USER_ENTERED"
-    })
-        .then(function (res) {
+        body: JSON.stringify({
+            values: [[lawName, userMail, billNum, derug,
+                location.href, description.value,
+                /* comment */
+                , /* is voted? */, /* is passed? */,
+            ].concat(initiators)]
+        })
+    }).then(response => response.json())
+        .then(data => {
             var text = "נשלח";
-            if (res.error)
-                text = res.error;
+            if (data.error)
+                text = data.error;
             sendBtn.innerText = text;
-        }).catch((err) => { console.error(err); $("#gSignoutBtn").parent().append(document.createTextNode(err.body)) });
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            sendBtn.innerText = error;
+        });
+    sendBtn.innerText = "שולח...";
 }
 
 var description;
+var mailText;
 var connectBtn;
 var disconnectBtn;
 if ((col = $("#tblMainProp tr"))) {
@@ -140,10 +140,25 @@ if ((col = $("#tblMainProp tr"))) {
     sendBtn.classList.add("btn-sm");
     row.appendChild(sendBtn);
 
+    mailText = elementWithStyle("input", "padding-right: 10px;");
+    mailText.id = "mailText";
+    row.appendChild(mailText);
+    mailText.value = userMail;
+    mailText.placeholder = "אימייל (לכניסה)";
+    mailText.style.width = "20vh";
+    mailText.addEventListener("change", function () {
+        if (!mailText.value.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) {
+            connectBtn.disabled = true;
+            return;
+        }
+        connectBtn.disabled = false;
+    });
+
     connectBtn = btn("התחבר");
     connectBtn.id = "gSigninBtn";
     connectBtn.addEventListener("click", handleAuthClick);
     connectBtn.classList.add("btn-success");
+    connectBtn.disabled = true;
     row.appendChild(connectBtn);
 
     disconnectBtn = btn("התנתק");
@@ -162,46 +177,13 @@ document.body.appendChild(function () {
     return ret;
 }());
 
-
-
-var CLIENT_ID = '184591434170-99oska8ospn9t3g15as7atcv22khsmd6.apps.googleusercontent.com';
-var APP_SECRET = 'FEwu9p-2mDrIc8xQLfRKklc_';
-
-// Array of API discovery doc URLs for APIs used by the quickstart
-var DISCOVERY_DOCS = ["https://sheets.googleapis.com/$discovery/rest?version=v4"];
-
-// Authorization scopes required by the API; multiple scopes can be
-// included, separated by spaces.
-var SCOPES = "https://www.googleapis.com/auth/spreadsheets";
-
 /**
  *  On load, called to load the auth2 library and API client library.
  */
 function handleClientLoad() {
-    gapi.load('client:auth2', initClient);
-}
-
-/**
- *  Initializes the API client library and sets up sign-in state
- *  listeners.
- */
-function initClient() {
-    gapi.client.init({
-        clientId: CLIENT_ID,
-        appSecret: APP_SECRET,
-        discoveryDocs: DISCOVERY_DOCS,
-        scope: SCOPES
-    }).then(function () {
-        // Listen for sign-in state changes.
-        gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
-
-        // Handle the initial sign-in state.
-        updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-    }, function (error) {
-        appendPre(JSON.stringify(error, null, 2));
-        //    setTimeout(handleClientLoad, 2000);
-
-    });
+    let myMail = localStorage.getItem("userMail");
+    if (myMail) userMail = myMail;
+    updateSigninStatus(myMail != null);
 }
 
 /**
@@ -211,13 +193,9 @@ function initClient() {
 function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
         connectBtn.style.display = 'none';
+        mailText.style.display = 'none';
         disconnectBtn.style.display = 'block';
-        try {
-            userMail = gapi.auth2.getAuthInstance().currentUser.get().getBasicProfile().getEmail();
-            disconnectBtn.innerHTML = "התנתק מ" + userMail;
-        } catch (e) {
-            appendPre(e);
-        }
+        disconnectBtn.innerHTML = "התנתק מ" + userMail;
         var billNum = $("strong:contains(מספר הצ\"ח)").parent().next().text().trim().split("/");
         if (billNum.length <= 1) {
             billNum = $(".LawSecondaryDetailsTd:contains(פרסום ברשומות)").next().text().trim().match(/הצ"ח הממשלה .{10,20} - (\d+)/)[1];
@@ -225,14 +203,13 @@ function updateSigninStatus(isSignedIn) {
             billNum = ["מ", billNum, "34"];
         }
         var billN = Number(billNum[1]) + 1;
-        gapi.client.sheets.spreadsheets.values.batchGet({
-            spreadsheetId: spreadsheetId,
-            ranges: "laws" + billNum[2] + "!D" + billN + ":F" + billN
-        })
+        fetch(`https://li.oodi.co.il/api/read/laws${billNum[2]}/${billN}`, {
+            method: 'GET',
+        }).then(response => response.json())
             .then(function (res) {
-                //console.log(res);
-                $("#derug").val(res.result.valueRanges[0].values[0][0]) || -100;
-                description.value = res.result.valueRanges[0].values[0][2] || "";
+                console.log(res, res.data);
+                $("#derug").val(res[0]) || -100;
+                description.value = res[2] || "";
 
             })
     } else {
@@ -246,7 +223,26 @@ function updateSigninStatus(isSignedIn) {
  */
 function handleAuthClick(event) {
     event.preventDefault();
-    gapi.auth2.getAuthInstance().signIn();
+    fetch('https://li.oodi.co.il/api/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: mailText.value })
+    }).then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                userMail = data.email;
+                localStorage.setItem("userMail", userMail);
+                updateSigninStatus(true);
+            } else {
+                appendPre(`Login failed ${data.message}`);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            appendPre(`Login error: ${error}`);
+        });
 }
 
 /**
@@ -254,7 +250,8 @@ function handleAuthClick(event) {
  */
 function handleSignoutClick(event) {
     event.preventDefault();
-    gapi.auth2.getAuthInstance().signOut();
+    localStorage.removeItem("userMail");
+    userMail = "anonymous";
 }
 
 /**
