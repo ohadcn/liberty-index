@@ -3,7 +3,7 @@
 // @name:he        עורכי מדד החירות
 // @description    Help Knesset Agendas Editors And Reviewers
 // @description:he סקריפט עזר למדרגי חוקים עבור מדד החרות.
-// @version        1.5.0
+// @version        1.5.1
 // @namespace      ohadcn-kneset-agendas
 // @author         Ohad Cohen
 // @include          https://main.knesset.gov.il/Activity/Legislation/Laws/Pages/LawBill.aspx*
@@ -135,10 +135,13 @@ if ((col = $("#tblMainProp tr"))) {
     sendBtn = btn("שלח");
     sendData.id = "sendBtn";
     sendBtn.addEventListener("click", sendData);
+    sendBtn.disabled = true;
 
     sendBtn.classList.add("btn-success");
     sendBtn.classList.add("btn-sm");
     row.appendChild(sendBtn);
+
+    row.appendChild(elementWithStyle("br", "clear: both;"));
 
     mailText = elementWithStyle("input", "padding-right: 10px;");
     mailText.id = "mailText";
@@ -196,6 +199,7 @@ function updateSigninStatus(isSignedIn) {
         mailText.style.display = 'none';
         disconnectBtn.style.display = 'block';
         disconnectBtn.innerHTML = "התנתק מ" + userMail;
+        sendBtn.disabled = false;
         var billNum = $("strong:contains(מספר הצ\"ח)").parent().next().text().trim().split("/");
         if (billNum.length <= 1) {
             billNum = $(".LawSecondaryDetailsTd:contains(פרסום ברשומות)").next().text().trim().match(/הצ"ח הממשלה .{10,20} - (\d+)/)[1];
@@ -215,6 +219,7 @@ function updateSigninStatus(isSignedIn) {
     } else {
         connectBtn.style.display = 'block';
         disconnectBtn.style.display = 'none';
+        sendBtn.disabled = true;
     }
 }
 
@@ -252,6 +257,7 @@ function handleSignoutClick(event) {
     event.preventDefault();
     localStorage.removeItem("userMail");
     userMail = "anonymous";
+    updateSigninStatus(false);
 }
 
 /**
