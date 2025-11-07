@@ -26,6 +26,8 @@ authClient.authorize(function (err, tokens) {
 
 const allowed_users = JSON.parse(fs.readFileSync('allowed_mails.json'));
 
+webapi.use(express.static('public'));
+
 webapi.options('/api/{*path}', (req, res) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
